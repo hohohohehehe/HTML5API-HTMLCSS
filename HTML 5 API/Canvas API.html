@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            margin-bottom: 10px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="myCanvas" width="400" height="200"></canvas>
+    <canvas id="secondCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "blue";
+        ctx.fillRect(0, 0, 400, 200);
+
+        const secondCanvas = document.getElementById("secondCanvas");
+        const ctxt = secondCanvas.getContext("2d");
+        
+        let squareX = 0;
+        let squareSpeed = 2;
+        let animationId;
+
+        function drawHouse() {
+            ctxt.clearRect(0, 0, 400, 400);
+
+            ctxt.fillStyle = "green";
+            ctxt.fillRect(50, 150, 100, 100);
+            ctxt.beginPath();
+            ctxt.moveTo(50, 150); 
+            ctxt.lineTo(100, 100); 
+            ctxt.lineTo(150, 150); 
+            ctxt.fillStyle = "red";
+            ctxt.fill();
+            ctxt.stroke();
+
+            ctxt.beginPath();
+            ctxt.arc(350, 50, 30, 0, 2 * Math.PI);
+            ctxt.fillStyle = "yellow";
+            ctxt.fill();
+
+            ctxt.beginPath();
+            ctxt.arc(300, 100, 20, 0, 2 * Math.PI);
+            ctxt.arc(330, 100, 25, 0, 2 * Math.PI);
+            ctxt.arc(360, 100, 20, 0, 2 * Math.PI);
+            ctxt.fillStyle = "white";
+            ctxt.fill();
+
+            ctxt.font = "30px Arial";
+            ctxt.fillStyle = "red";
+            ctxt.fillText("Мой дом", 60, 280);
+            ctxt.strokeStyle = "black";
+            ctxt.lineWidth = 1;
+            ctxt.strokeText("Мой дом", 60, 280);
+
+            ctxt.fillStyle = "orange";
+            ctxt.fillRect(squareX, 320, 50, 50);
+        }
+
+        function animate() {
+            squareX += squareSpeed;
+            
+            if (squareX > 350 || squareX < 0) {
+                squareSpeed = -squareSpeed; 
+            }
+            
+            drawHouse();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('beforeunload', () => {
+            cancelAnimationFrame(animationId);
+        });
+    </script>
+</body>
+
+</html>

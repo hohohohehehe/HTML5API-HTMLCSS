@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление пользователями</title>
+
+</head>
+<body>
+    <div class="section">
+        <h2>Добавить пользователя</h2>
+        <input id="name" placeholder="Имя"><br>
+        <input id="email" placeholder="Email"><br>
+        <button onclick="addUser()">Добавить</button>
+    </div>
+
+    <div class="section">
+        <h2>Найти пользователя по ID</h2>
+        <input id="userId" placeholder="Введите ID" type="number"><br>
+        <button onclick="getUserById()">Найти</button>
+    </div>
+
+    <div class="section">
+        <h2>Результат операций</h2>
+        <div id="result" class="result">Результаты будут здесь</div>
+    </div>
+
+    <script>
+        let db;
+        const dbName = "SimpleUserDB";
+        const dbVersion = 1;
+
+        function initDB() {
+            const request = indexedDB.open(dbName, dbVersion);
+            
+            request.onupgradeneeded = function(e) {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains('users')) {
+                    const store = db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+                    store.createIndex('email', 'email', { unique: true });
+                }
+            };
+            
+            request.onsuccess = function(e) {
+                db = e.target.result;
+                showResult('База данных готова');
+            };
+            
+            request.onerror = function(e) {
+                showResult('Ошибка: ' + e.target.error, 'error');
+            };
+        }
+
+        function addUser() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            if (!name || !email) {
+                showResult('Заполните все поля', 'error');
+                return;
+            }
+
+            const transaction = db.transaction(['users'], 'readwrite');
+            const store = transaction.objectStore('users');
+            
+            const user = { name, email, created: new Date().toISOString() };
+            const request = store.add(user);
+
+            request.onsuccess = function() {
+                document.getElementById('name').value = '';
+                document.getElementById('email').value = '';
+                showResult(`Пользователь добавлен с ID: ${request.result}`);
+            };
+            
+            request.onerror = function(e) {
+                showResult(`Ошибка: ${e.target.error}`, 'error');
+            };
+        }
+
+        function getUserById() {
+            const id = parseInt(document.getElementById('userId').value);
+            
+            if (!id || id <= 0) {
+                showResult('Введите корректный ID', 'error');
+                return;
+            }
+
+            const transaction = db.transaction(['users'], 'readonly');
+            const store = transaction.objectStore('users');
+            const request = store.get(id);
+
+            request.onsuccess = function() {
+                const user = request.result;
+                if (user) {
+                    showResult(`Найден: ID: ${user.id}, Имя: ${user.name}, Email: ${user.email}`);
+                } else {
+                    showResult('Пользователь не найден', 'error');
+                }
+            };
+            
+            request.onerror = function(e) {
+                showResult(`Ошибка: ${e.target.error}`, 'error');
+            };
+        }
+
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.style.color = type === 'error' ? '#d32f2f' : '#388e3c';
+        }
+
+        window.onload = initDB;
+    </script>
+</body>
+</html>

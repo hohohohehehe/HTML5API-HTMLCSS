@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Практическая работа</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .catalog {
+            flex: 3;
+        }
+
+        .cart {
+            flex: 2;
+            border: 1px solid #ccc;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .product {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #828282;
+        }
+
+        .clear-cart-btn{
+            color: rgb(255, 255, 255);
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Практическая работа 1</h1>
+
+    <textarea id="textField" placeholder="Начните вводить текст..."></textarea>
+
+    <h1>Практическая работа 2</h1>
+
+    <div>
+        <h2>Просмотров за эту сессию: <span id="sessionViews">0</span></h2>
+    </div>
+
+    <div>
+        <h2>Всего просмотров: <span id="totalViews">0</span></h2>
+    </div>
+
+    <div>
+        <button id="refreshButton">Обновить страницу</button>
+        <button id="resetTotal">Сбросить общий счетчик</button>
+    </div>
+
+    <h1>Практическая работа 3</h1>
+
+    <form id="contactForm">
+        <div>
+            <label for="name">Имя:</label>
+            <br>
+            <input type="text" id="name" name="name">
+        </div>
+
+        <div>
+            <label for="email">Email:</label>
+            <br>
+            <input type="email" id="email" name="email">
+        </div>
+
+        <div>
+            <label for="message">Сообщение:</label>
+            <br>
+            <textarea id="message" name="message" rows="4" cols="50"></textarea>
+        </div>
+
+        <div>
+            <button type="submit">Отправить</button>
+            <button type="button" id="clearButton">Очистить форму</button>
+        </div>
+    </form>
+
+    <div id="status"></div>
+
+    <h1>Практическая работа 4</h1>
+
+    <h1>Каталог товаров</h1>
+
+    <div class="container">
+        <div class="catalog">
+            <h2>Товары</h2>
+            <div class="products" id="products">
+            </div>
+        </div>
+
+        <div class="cart">
+            <h2>Корзина</h2>
+            <div id="cart-items">
+            </div>
+            <div id="cart-total">
+            </div>
+            <button class="clear-cart-btn" onclick="clearCart()">Очистить корзину</button>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        //практическая работа 1
+        document.addEventListener('DOMContentLoaded', function () {
+            const textField = document.getElementById('textField');
+            const saveStatus = document.getElementById('saveStatus');
+
+            const STORAGE_KEY = 'autoSaveText';
+
+            function saveText() {
+                const text = textField.value;
+                localStorage.setItem(STORAGE_KEY, text);
+            }
+
+            function loadText() {
+                const savedText = localStorage.getItem(STORAGE_KEY);
+                if (savedText) {
+                    textField.value = savedText;
+                }
+            }
+
+
+            loadText();
+
+            let saveTimeout;
+            textField.addEventListener('input', function () {
+
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(saveText, 500);
+            });
+
+            window.addEventListener('beforeunload', saveText);
+        });
+
+        //практическая работа 2
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const sessionViewsElement = document.getElementById('sessionViews');
+            const totalViewsElement = document.getElementById('totalViews');
+            const refreshButton = document.getElementById('refreshButton');
+            const resetButton = document.getElementById('resetTotal');
+
+            let sessionViews = sessionStorage.getItem('sessionViews');
+            if (sessionViews === null) {
+                sessionViews = 0;
+            } else {
+                sessionViews = parseInt(sessionViews);
+            }
+            sessionViews++;
+            sessionStorage.setItem('sessionViews', sessionViews);
+            sessionViewsElement.textContent = sessionViews;
+
+            let totalViews = localStorage.getItem('totalViews');
+            if (totalViews === null) {
+                totalViews = 0;
+            } else {
+                totalViews = parseInt(totalViews);
+            }
+            totalViews++;
+            localStorage.setItem('totalViews', totalViews);
+            totalViewsElement.textContent = totalViews;
+
+            refreshButton.addEventListener('click', function () {
+                location.reload();
+            });
+
+            resetButton.addEventListener('click', function () {
+                localStorage.setItem('totalViews', 0);
+                totalViewsElement.textContent = 0;
+            });
+        });
+
+        //практическая работа 3
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('contactForm');
+            const nameField = document.getElementById('name');
+            const emailField = document.getElementById('email');
+            const messageField = document.getElementById('message');
+            const clearBtn = document.getElementById('clearButton');
+            const statusDiv = document.getElementById('status');
+
+            const STORAGE_KEY = 'formAutoSave';
+
+            function saveFormData() {
+                const formData = {
+                    name: nameField.value,
+                    email: emailField.value,
+                    message: messageField.value
+                };
+
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+                showStatus('Данные сохранены', 'success');
+            }
+
+            function loadFormData() {
+                const savedData = sessionStorage.getItem(STORAGE_KEY);
+                if (savedData) {
+                    const formData = JSON.parse(savedData);
+                    nameField.value = formData.name || '';
+                    emailField.value = formData.email || '';
+                    messageField.value = formData.message || '';
+                    showStatus('Данные восстановлены', 'success');
+                }
+            }
+
+            function showStatus(message, type) {
+                statusDiv.textContent = message;
+                statusDiv.style.color = type === 'success' ? 'green' : 'red';
+
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                }, 3000);
+            }
+
+            function clearForm() {
+                form.reset();
+                sessionStorage.removeItem(STORAGE_KEY);
+                showStatus('Форма очищена', 'success');
+            }
+
+            loadFormData();
+
+            const formFields = [nameField, emailField, messageField];
+            let saveTimeout;
+
+            formFields.forEach(field => {
+                field.addEventListener('input', function () {
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(saveFormData, 500);
+                });
+            });
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                sessionStorage.removeItem(STORAGE_KEY);
+                showStatus('Форма отправлена! Данные очищены.', 'success');
+                form.reset();
+            });
+
+            clearBtn.addEventListener('click', clearForm);
+        });
+
+        //практическая работа 4
+        const products = [
+            { id: 1, name: 'Ноутбук', price: 50000 },
+            { id: 2, name: 'Смартфон', price: 25000 },
+            { id: 3, name: 'Наушники', price: 5000 },
+            { id: 4, name: 'Клавиатура', price: 3000 }
+        ];
+
+        const CART_STORAGE_KEY = 'cart';
+
+        let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+
+        function saveCart() {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        }
+
+        function addToCart(productId) {
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: productId,
+                    quantity: 1
+                });
+            }
+
+            saveCart();
+            renderCart();
+        }
+
+        function updateQuantity(productId, newQuantity) {
+            if (newQuantity < 1) {
+                removeFromCart(productId);
+                return;
+            }
+
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                item.quantity = newQuantity;
+                saveCart();
+                renderCart();
+            }
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            saveCart();
+            renderCart();
+        }
+
+        function renderProducts() {
+            const productsContainer = document.getElementById('products');
+            productsContainer.innerHTML = '';
+
+            products.forEach(product => {
+                const productElement = document.createElement('div');
+                productElement.className = 'product';
+                productElement.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>Цена: ${product.price} руб.</p>
+                    <button onclick="addToCart(${product.id})">Добавить в корзину</button>
+                `;
+                productsContainer.appendChild(productElement);
+            });
+        }
+
+        function clearCart() {
+            cart = [];
+            saveCart();
+            renderCart();
+        }
+
+
+        function renderCart() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartTotalContainer = document.getElementById('cart-total');
+
+            cartItemsContainer.innerHTML = '';
+
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="empty-cart">Корзина пуста</div>';
+                cartTotalContainer.innerHTML = '';
+                return;
+            }
+
+            let total = 0;
+
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.id);
+                if (product) {
+                    const itemTotal = product.price * item.quantity;
+                    total += itemTotal;
+
+                    const cartItemElement = document.createElement('div');
+                    cartItemElement.className = 'cart-item';
+                    cartItemElement.innerHTML = `
+                        <div>
+                            <strong>${product.name}</strong><br>
+                            ${product.price} руб. × ${item.quantity} = ${itemTotal} руб.
+                        </div>
+                        <div class="quantity-controls">
+                            <button onclick="updateQuantity(${product.id}, ${item.quantity - 1})">-</button>
+                            <span>${item.quantity}</span>
+                            <button onclick="updateQuantity(${product.id}, ${item.quantity + 1})">+</button>
+                            <button onclick="removeFromCart(${product.id})">х</button>
+                        </div>
+                    `;
+                    cartItemsContainer.appendChild(cartItemElement);
+                }
+            });
+
+            cartTotalContainer.innerHTML = `<h3>Общая сумма: ${total} руб.</h3>`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts();
+            renderCart();
+        });
+    </script>
+</body>
+
+</html>
